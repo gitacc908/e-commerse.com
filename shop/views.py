@@ -8,7 +8,10 @@ from .utils import recalc_cart
 from .forms import OrderForm
 from .models import Notebook, Smartphone, Category, LatestProducts, Customer, Cart, CartProduct, Tv
 from .mixins import CategoryDetailMixin, CartMixin
-
+from django.views import generic
+from django.urls import reverse_lazy
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 class BaseView(CartMixin, View):
 
@@ -24,7 +27,7 @@ class BaseView(CartMixin, View):
                                              'cart': self.cart})
 
 
-class ProductDetailView(CartMixin, CategoryDetailMixin, DetailView):
+class ProductDetailView(LoginRequiredMixin, CartMixin, CategoryDetailMixin, DetailView):
     CT_MODEL_MODEL_CLASS = {
         'notebook': Notebook,
         'smartphone': Smartphone,
@@ -47,7 +50,7 @@ class ProductDetailView(CartMixin, CategoryDetailMixin, DetailView):
         return context
 
 
-class CategoryDetailView(CartMixin, CategoryDetailMixin, DetailView):
+class CategoryDetailView(LoginRequiredMixin,CartMixin, CategoryDetailMixin, DetailView):
     model = Category
     queryset = Category.objects.all()
     context_object_name = 'category'
@@ -60,7 +63,7 @@ class CategoryDetailView(CartMixin, CategoryDetailMixin, DetailView):
         return context
 
 
-class CartView(CartMixin, View):
+class CartView(LoginRequiredMixin,CartMixin, View):
 
     def get(self, request, *args, **kwargs):
         categories = Category.objects.get_categories_for_left_sidebar()
@@ -71,7 +74,7 @@ class CartView(CartMixin, View):
         return render(request, 'cart.html', context)
 
 
-class AddToCartView(CartMixin, View):
+class AddToCartView(LoginRequiredMixin,CartMixin, View):
 
     def get(self, request, *args, **kwargs):
         ct_model, product_slug = kwargs.get('ct_model'), kwargs.get('slug')
@@ -88,7 +91,7 @@ class AddToCartView(CartMixin, View):
         return HttpResponseRedirect('/cart/')
 
 
-class DeleteFromCartView(CartMixin, View):
+class DeleteFromCartView(LoginRequiredMixin,CartMixin, View):
 
     def get(self, request, *args, **kwargs):
         ct_model, product_slug = kwargs.get('ct_model'), kwargs.get('slug')
@@ -104,7 +107,7 @@ class DeleteFromCartView(CartMixin, View):
         return HttpResponseRedirect('/cart/')
 
 
-class ChangeQTYView(CartMixin, View):
+class ChangeQTYView(LoginRequiredMixin,CartMixin, View):
 
     def post(self, request, *args, **kwargs):
         ct_model, product_slug = kwargs.get('ct_model'), kwargs.get('slug')
@@ -122,7 +125,7 @@ class ChangeQTYView(CartMixin, View):
 
 
 
-class CheckoutView(CartMixin, View):
+class CheckoutView(LoginRequiredMixin,CartMixin, View):
 
     def get(self, request, *args, **kwargs):
         categories = Category.objects.get_categories_for_left_sidebar()
@@ -135,7 +138,7 @@ class CheckoutView(CartMixin, View):
         return render(request, 'checkout.html', context)
 
 
-class MakeOrderView(CartMixin, View):
+class MakeOrderView(LoginRequiredMixin,CartMixin, View):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
@@ -160,3 +163,8 @@ class MakeOrderView(CartMixin, View):
             messages.add_message(request, messages.INFO, 'Спасибо за заказ! Менеджер с Вами свяжется')
             return HttpResponseRedirect('/')
         return HttpResponseRedirect('/checkout/')
+
+class SignUpView(generic.CreateView):
+    form_class = UserCreationForm
+    success_url = reverse_lazy('login')
+    template_name = 'registration/signup.html'

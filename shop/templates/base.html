@@ -35,6 +35,30 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
+          {% if request.user.is_authenticated %}
+
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'cart' %}">Hello
+              <span class="badge badge-pill badge-danger">{{ user.username }}!</span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'logout' %}">Logout
+              <span class="badge badge-pill badge-danger"></span>
+            </a>
+          </li>
+          {% else %}
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'login' %}">Login
+              <span class="badge badge-pill badge-danger"></span>
+            </a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'signup' %}">Sign Up
+              <span class="badge badge-pill badge-danger"></span>
+            </a>
+          </li>
+          {% endif %}
           <li class="nav-item active">
             <a class="nav-link" href="{% url 'cart' %}">Cart
               <span class="badge badge-pill badge-danger">{{ cart.products.count }}</span>
